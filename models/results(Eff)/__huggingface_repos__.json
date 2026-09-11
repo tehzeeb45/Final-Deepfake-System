@@ -1,0 +1,1 @@
+{"repos": [{"repoId": "timm/tf_efficientnet_b5.ns_jft_in1k", "repoType": "model", "commitHash": "8c0c5004702fa3dca6eeea777700cecef4fb66be", "filePaths": ["model.safetensors"]}]}

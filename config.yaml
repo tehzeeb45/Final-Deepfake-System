@@ -1,0 +1,77 @@
+# =============================================================================
+# DeepFake Detection System - Configuration
+# Maps to FR/NFR identifiers from the SRS (see README traceability table).
+# =============================================================================
+
+server:
+  host: 127.0.0.1
+  port: 5000
+  debug: false                    # NFR-07: fully-local inference; no external calls
+
+uploads:
+  upload_dir: uploads             # Tier-3 temporary storage
+  session_expiry_seconds: 360000    # FR-20: temp files auto-deleted after 1 hour
+  max_image_size_mb: 10           # FR-04
+  max_video_size_mb: 100          # FR-04
+  allowed_image_types: [image/jpeg, image/png]       # FR-01
+  allowed_video_types: [video/mp4, video/x-msvideo]  # FR-02
+  max_video_duration_seconds: 60  # FR-02: first 60 s analysed in v1.0
+
+models:
+  device: auto                    # auto | cpu | cuda
+
+  # ===========================================================================
+  # DeepShield-trained models (4-model ensemble)
+  # Place the folders in models/ before starting the server.
+  # ===========================================================================
+
+  new_xception:                   # timm xception71, 2-class (Real/Fake), 299x299
+    name: "Xception71 (DeepShield)"
+    type: xception71
+    checkpoint: ./models/results(Xception)/best_xception71.pth
+
+  new_efficientnet:               # timm tf_efficientnet_b5, 2-class, 456x456
+    name: "EfficientNet-B5 (DeepShield)"
+    type: tf_efficientnet_b5
+    checkpoint: ./models/results(Eff)/best_efficientnet_b5.pth
+
+  new_vit_small:                  # timm vit_base_patch16_224, 2-class, 224x224
+    name: "ViT-Base (DeepShield)"
+    type: vit_base_patch16_224
+    checkpoint: ./models/results(Vit1)/best_vit_base.pth
+
+  new_vit_large_clip:             # timm vit_large_patch14_clip_224, 2-class, 224x224
+    name: "ViT-Large/CLIP (DeepShield)"
+    type: vit_large_patch14_clip_224
+    checkpoint: ./models/best_vit_large_clip.pth
+
+ensemble:                         # FR-14: weighted soft voting across 4 new models
+  # All 4 DeepShield-trained models vote with weighted soft voting.
+  # The ensemble.combine() normalises by sum-of-weights automatically.
+  # Set a model's weight to 0.0 to exclude it without removing the file.
+  image_weights:                  # Balanced Multi-Modal Ensemble (ViT-Large 2.0 + Dual CNNs 1.0)
+    new_vit_large_clip: 2.0       # ViT-Large/CLIP: balanced lead for generative/diffusion AI
+    new_efficientnet: 1.0         # EfficientNet-B5: spatial consistency anchor
+    new_xception: 1.0             # Xception71: boundary & texture artifact anchor
+    new_vit_small: 0.0            # ViT-Small: passive (0.0 weight)
+  video_weights:                  # Dual CNN Anchors + ViT-Large Generative AI Detector
+    new_vit_large_clip: 1.5       # ViT-Large/CLIP: catches AI video generators (Google VEO 3, Sora)
+    new_xception: 1.5             # Xception71: frame-by-frame seam/boundary classifier (boosted)
+    new_efficientnet: 1.0         # EfficientNet-B5: face-swap consistency anchor
+    new_vit_small: 0.0            # ViT-Small: passive (0.0 weight)
+  image_threshold: 0.45           # Calibrated threshold (45%) to catch AI generative fakes
+  video_threshold: 0.52           # Calibrated video threshold (52%) — reduces FP on real videos
+  threshold: 0.45                  # default fallback threshold
+ 
+preprocessing:
+  video_fps: 5                    # FR-05: configurable frame extraction rate
+  max_frames: 40                  # uniform sample of frames for analysis
+  target_size: 224                # FR-09: default model input resolution (ViT-Base)
+  face_margin: 0.10               # crop pad around MTCNN box (0.10 matches face crops)
+  mtcnn_confidence: 0.95          # MTCNN conf threshold (Section 5.4.1)
+  normalize_mode: scale_01        # scale_01 (0..1 range, per-model norm applied in wrappers)
+  imagenet_mean: [0.485, 0.456, 0.406]             # FR-10 (used by EfficientNet-B5)
+  imagenet_std: [0.229, 0.224, 0.225]              # FR-10 (used by EfficientNet-B5)
+
+metrics:
+  output_dir: metrics

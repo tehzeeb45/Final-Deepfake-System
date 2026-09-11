@@ -1,0 +1,1 @@
+{"repos": [{"repoId": "timm/xception71.tf_in1k", "repoType": "model", "commitHash": "a640691b2d492bf49597fec515895dc9fd467da9", "filePaths": ["model.safetensors"]}]}
