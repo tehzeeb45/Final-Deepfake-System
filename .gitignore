@@ -10,3 +10,6 @@ frontend/node_modules/
 Thumbs.db
 
 .venv/
+
+*_OLD.pth
+*_old.pth

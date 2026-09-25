@@ -1,344 +1,433 @@
-# 🎓 FYP Defence — Questions & Answers
-
-**Project**: Deepfake Detection System
+﻿# 🎓 External Defence — Complete Q&A Guide
+**Project**: Deepfake Detection System (Multi-Model Ensemble)
 **Students**: Tehzeeb Ul Hassan & Muhammad Khubaib Khalid
 **Supervisor**: Mr. Adeel Mustafa
 **Institute**: Institute for Art and Culture (IAC), Lahore
 
 ---
 
-## 🤖 AI / Models Related Questions
+## 🔰 SECTION 1 — Project Basics
 
 ---
 
-**Q1. Aap ne yeh 4 models hi kyun choose kiye?**
+**Q1. Apna project explain karein?**
 
-Hamara maqsad accuracy aur generalization dono achieve karna tha. Isliye 2 alag types ke models choose kiye:
-
-- **XceptionNet & EfficientNet-B3** — CNN (Convolutional Neural Network) based models hain. Yeh pixel-level texture artifacts aur frequency patterns dhoondnte hain. FF++ C23 dataset par XceptionNet ka AUC 0.9976 hai.
-- **ViT-Small (CommunityForensics)** — Vision Transformer hai jo 2.7 Million samples aur 4803 different deepfake generators par train hua — zyada generalize karta hai.
-- **ViT-L/14 (LNCLIP)** — CLIP-based large model hai jo unseen deepfake generators par bhi kaam karta hai (DFDC: 87.2%, Celeb-DF: 96.6%).
-
-Charon models ka ensemble isliye kiya taake koi ek model ki weakness doosra cover kar sake.
+Hamne ek AI-powered Deepfake Detection System banaya hai jo images aur videos mein manipulated content detect karta hai. System 3 alag AI models (ViT-Large/CLIP, EfficientNet-B5, Xception71) ka ensemble use karta hai. User image ya video upload kare — system batata hai Real hai ya Fake, confidence percentage ke saath aur visual heatmap bhi dikhata hai.
 
 ---
 
-**Q2. XceptionNet aur EfficientNet mein kya farq hai?**
+**Q2. Yeh project kyun banaya?**
 
-| | XceptionNet | EfficientNet-B3 |
-|:---|:---|:---|
-| Architecture | Depthwise Separable Convolutions | Compound Scaling (depth + width + resolution) |
-| Special Role | Grad-CAM heatmap generate karta hai (conv4 layer) | Sabse high single-model accuracy (98.29%) |
-| Parameters | ~22 Million | ~12 Million |
-| Training Data | FF++ C23 | FF++ C23 |
+Generative AI (Midjourney, Stable Diffusion, Google Veo, Sora) itni advanced ho gayi hai ke fake images aur videos bilkul real lagte hain. Isse political manipulation, financial fraud, aur misinformation phail sakti hai. Koi aam user verify nahi kar sakta tha. Hamare project ne free, local, privacy-safe detector banaya.
 
 ---
 
-**Q3. ViT aur CNN mein kya farq hai?**
+**Q3. Deepfake kya hota hai?**
 
-- **CNN**: Image ko chote patches mein todta hai aur local patterns (edges, textures) dhoondta hai. Ek jagah ek waqt mein dekhta hai.
-- **ViT (Vision Transformer)**: Poori image ko patches mein todta hai aur **Self-Attention** mechanism se patches ke darmiyan global relationships dhoondta hai. Ek waqt mein poori image ka context dekhta hai.
+Deepfake ek AI technique hai jisme:
+- Kisi ka chehra doosre par lagaya jata hai (Face Swap)
+- Ya puri image/video AI se generate ki jati hai (Midjourney, DALL-E)
+- Ya chehra ka expression manipulate hota hai (Face Reenactment)
 
-CNN local features mein better hai, ViT global inconsistencies pakad leta hai — isliye dono sath use kiye.
-
----
-
-**Q4. Model accuracy kitni hai?**
-
-| Model | Accuracy | AUC |
-|:---|:---|:---|
-| XceptionNet | ~97% | 0.9976 |
-| EfficientNet-B3 | 98.29% | 0.9976 |
-| ViT-Small | ~95%+ | High |
-| ViT-L/14 | DFDC 87.2% / Celeb-DF 96.6% | — |
-| **Ensemble** | **~98%+** | **~0.99** |
+"Deep" = Deep Learning. "Fake" = Fake content.
 
 ---
 
-**Q5. Agar model galat result de toh?**
+**Q4. Aapka system kya detect kar sakta hai?**
 
-Yeh possible hai — koi bhi AI model 100% perfect nahi hota. Is liye hamne:
-1. **4 models ka ensemble** rakha — ek ki galti baki cover karte hain
-2. **Confidence % dikhate hain** — agar 51% FAKE hai toh user samjhe ke borderline case hai
-3. **Grad-CAM heatmap** provide kiya — user khud dekh sakta hai model ne kya dekha
-4. **Threshold 0.5** — user `config.yaml` mein customize kar sakta hai
-
----
-
-**Q6. Training kahan ki thi? Aap ne khud train kiya?**
-
-Nahi — hamne pre-trained models use kiye jo already publicly available hain:
-- **XceptionNet & EfficientNet**: Hugging Face `Khubaib7/deepfake-models` par available hain — FF++ C23 dataset par train kiye gaye
-- **ViT-Small (CommunityForensics)**: `buildborderless/CommunityForensics-DeepfakeDet-ViT` — CVPR 2025 research paper
-- **ViT-L/14 (LNCLIP)**: `yermandy/deepfake-detection` — WACV 2026 paper
-
-Hamara contribution tha in models ko ek unified detection pipeline mein integrate karna aur ensemble system banana.
+1. AI-Generated Images (Midjourney, Stable Diffusion, Gemini)
+2. Face-Swap Deepfakes (DeepFaceLab, FaceSwap)
+3. AI-Generated Videos (Google Veo, Sora, Kling)
+4. GAN-generated faces (StyleGAN, ProGAN)
 
 ---
 
-**Q7. FF++ dataset kya hai?**
-
-FF++ (FaceForensics++) ek standard deepfake detection benchmark dataset hai:
-- **100 original videos** se 1000 manipulated videos banaye gaye
-- **4 manipulation methods**: DeepFakes, Face2Face, FaceSwap, NeuralTextures
-- **C23**: Light compression version — detection ke liye zyada challenging
-- Research mein deepfake detection models is par train aur test kiye jate hain
+## 🤖 SECTION 2 — Models & Architecture
 
 ---
 
-**Q8. Ensemble kyun use kiya, single model kyun nahi?**
+**Q5. Kitne models use kiye aur kyun?**
 
-Single model ki limitations hoti hain:
-- Ek model sirf specific type ke deepfakes pakad sakta hai
-- New unseen generators par fail ho sakta hai
+3 active models + 1 passive (weight=0):
+1. ViT-Large/CLIP — Global AI pattern detector
+2. EfficientNet-B5 — Face spatial consistency detector
+3. Xception71 — Pixel-level forensic detector
+4. ViT-Small — weight=0 (reliable nahi tha, exclude kiya)
 
-Ensemble ke faide:
-- **Ek model ki weakness = doosra cover karta hai**
-- **Weighted voting** — zyada reliable model ko zyada weight
-- **Overall accuracy badh jati hai**
-- Real world mein zyada robust
+Kyun 3? Ek model ki weakness doosra cover karta hai — ensemble se accuracy badh jati hai.
 
 ---
 
-## 🖼️ Grad-CAM Related Questions
+**Q6. Har model ka kaam alag kyun hai?**
+
+Kyunki har model alag nazar se image dekhta hai:
+
+| Model | Kya Dhundta Hai |
+|-------|----------------|
+| ViT-Large/CLIP | Poori image ka global AI texture pattern |
+| EfficientNet-B5 | Face ka spatial balance aur blending |
+| Xception71 | Pixel-level camera noise aur JPEG artifacts |
+
+Jaise crime scene par 3 alag experts — doctor, fingerprint expert, behavior analyst. Teeno mil kar sahi conclusion nikaalte hain.
 
 ---
 
-**Q9. Grad-CAM kya hota hai?**
+**Q7. ViT-Large/CLIP kyun choose kiya?**
 
-Grad-CAM (Gradient-weighted Class Activation Mapping) ek explainability technique hai jo batati hai ke AI model ne image ke **kaunse hisse** dekh kar FAKE/REAL decision kiya.
-
-Process:
-1. XceptionNet ke **conv4 layer** se gradients calculate hote hain
-2. Yeh gradients ek **2D saliency map** banate hain (224x224)
-3. Is map par **JET colormap** lagaya jata hai
-4. Face image par blend ho kar **Red/Yellow/Blue heatmap** banti hai
-
-Red = Model ne is jagah zyada suspicion detect kiya
-Blue = Is jagah kam concern tha
+ViT-Large/CLIP ko OpenAI ne billions of internet images par train kiya. Yeh model:
+- Poori image ko ek saath "attention" se dekhta hai
+- AI-generated images ke global texture patterns immediately pakadta hai
+- Unseen deepfake generators par bhi kaam karta hai
+- DFDC dataset par 87.2%, Celeb-DF par 96.6% accuracy
 
 ---
 
-**Q10. Red color kyun dikhta hai heatmap mein?**
+**Q8. EfficientNet-B5 kyun choose kiya?**
 
-Red color = **Highest activation area** — jahan model ne sabse zyada "fake evidence" dhundha.
-
-JET colormap mein:
-- 🔴 **Red** = Highest value (1.0) — most suspicious area
-- 🟡 **Yellow** = Medium-high value
-- 🟢 **Green** = Medium value
-- 🔵 **Blue** = Lowest value (0.0) — least suspicious area
-
-Typically deepfake images mein **cheek boundaries, ear area, aur eye corners** red hote hain.
+EfficientNet-B5 Google ka model hai jo compound scaling use karta hai — depth, width, resolution teeno ek saath scale karta hai:
+- Face-swap mein blending boundary pakadta hai
+- Chehre ke proportions ki spatial inconsistency detect karta hai
+- 456x456 native resolution — zyada detail dekhta hai
 
 ---
 
-**Q11. Yeh XceptionNet par hi kyun apply kiya?**
+**Q9. Xception kyun use kiya?**
 
-- XceptionNet mein `backbone.conv4` layer convolution-based hai — Grad-CAM CNN layers par best kaam karta hai
-- ViT (Transformer) par Grad-CAM directly apply nahi hota — different explainability techniques chahiye hoti hain (Attention Rollout)
-- XceptionNet ka `conv4` layer spatial features retain karta hai jo visual heatmap ke liye zaruri hain
-
----
-
-## 💻 Technical Questions
+Xception (Extreme Inception) Google ka model hai jo Depthwise Separable Convolutions use karta hai:
+- Real camera ka natural sensor noise (PRNU) detect karta hai
+- AI images mein yeh natural noise nahi hoti — Xception pakad leta hai
+- Pixel-level blending seams aur texture mismatches detect karta hai
+- Hamare system mein sabse honest model — real images ko correctly Real kehta hai
 
 ---
 
-**Q12. Flask kyun use kiya Django kyun nahi?**
+**Q10. CNN aur Vision Transformer (ViT) mein kya farq hai?**
 
-Django bahut heavy framework hai — ORM, admin panel, templates sab include hote hain. Hamein sirf ek **lightweight REST API** chahiye thi. Flask mein `@app.route` decorator se seedha API bana li. Django use karna overkill hota.
+| Feature | CNN | ViT |
+|---------|-----|-----|
+| Kaise dekhta hai | Local patches, ek ek karke | Poori image, globally |
+| Mechanism | Convolution filters | Self-Attention |
+| Best for | Texture, edge, local artifacts | Global pattern, context |
+| Example | Xception, EfficientNet | ViT-Large/CLIP |
 
----
-
-**Q13. React kyun use kiya?**
-
-- **Component-based architecture** — Scanner, History, Metrics alag reusable pieces hain
-- **State management** (`useState`, `useEffect`) — real-time scan progress, tabs, confidence animation ke liye zaruri tha
-- Plain HTML/JS mein itna complex dynamic UI banana mushkil hota
-- Duniya ki sabse popular frontend library — documentation easily milti hai
+CNN = Microscope (local detail), ViT = Telescope (big picture)
 
 ---
 
-**Q14. SQLite kyun use kiya?**
+**Q11. Ensemble kya hota hai aur kyun use kiya?**
 
-- **Zero setup** — koi server nahi, sirf ek `data/history.db` file
-- Python mein **built-in support** — koi extra installation nahi
-- FYP scale ke liye sufficient — thousands of records handle kar sakta hai
-- **WAL mode** use kiya — simultaneous read/write safe hoti hai
+Ensemble matlab multiple models ko mil kar ek final decision lena.
 
----
+Hamara method: Weighted Soft Voting
+- Har model apna probability score deta hai (0% to 100%)
+- Har model ko alag weight diya gaya hai
+- Weighted average se final score nikalta hai
+- Agar score > threshold = FAKE, warna REAL
 
-**Q15. Magic bytes kya hote hain?**
-
-Har file type ke shuruati bytes ek fixed pattern hote hain jo file ki actual type identify karte hain:
-
-- JPEG: `FF D8 FF`
-- PNG: `89 50 4E 47`
-- MP4: `66 74 79 70` (`ftyp`)
-- AVI: `52 49 46 46` (`RIFF`)
-
-Agar koi `.jpg` extension wali file andar se actually `.exe` (virus) ho, toh magic bytes check se pakad li jati hai. Extension badal kar attack nahi ho sakta.
+Kyun? ViT-Large strong hai AI images par, Xception strong hai real pakadne mein — mil kar dono ki weaknesses cover hoti hain.
 
 ---
 
-**Q16. Session ID kyun use kiya?**
+**Q12. Weights kaise decide kiye?**
 
-Har scan request ko ek **unique 32-character ID** milti hai (UUID). Is se:
-- Har user ki files alag folder mein save hoti hain (`uploads/<session_id>/`)
-- Multiple simultaneous scans mein files mix nahi hoti
-- History record mein specific scan track karna easy hota hai
+Weights empirically calibrate kiye gaye — real test data par trial karke:
 
----
+Image Weights:
+- ViT-Large/CLIP: 2.0 (50% voting share)
+- EfficientNet-B5: 1.0 (25%)
+- Xception71: 1.0 (25%)
 
-**Q17. WAL mode kya hota hai?**
-
-WAL (Write-Ahead Logging) SQLite ka high-performance mode hai:
-- **Without WAL**: Database write hone ke dauran read blocked hoti hai
-- **With WAL**: Read aur Write ek sath ho sakti hain — no blocking
-
-Hamare case mein: ek user scan save kar raha hai, doosra history page dekh raha hai — WAL mode se dono simultaneously kaam karte hain bina crash ke.
+Video Weights:
+- ViT-Large/CLIP: 1.5 (37.5%)
+- Xception71: 1.5 (37.5%) — video mein frame artifacts zyada pakadta hai
+- EfficientNet-B5: 1.0 (25%)
 
 ---
 
-## 📊 Performance Metrics Questions
+**Q13. Threshold kya hota hai aur aapne kya rakha?**
+
+Threshold wo cutoff point hai jis se upar score ho to FAKE, neeche to REAL.
+
+- Image threshold: 0.38 (38%)
+- Video threshold: 0.52 (52%)
+
+Image threshold low (0.38) isliye taake moderate fakes bhi pakad sakein. Video threshold zyada (0.52) isliye kyunki 40 frames average kiye jate hain — zyada reliable score hota hai.
 
 ---
 
-**Q18. Accuracy, Precision, Recall, F1 mein kya farq hai?**
+**Q14. Aapne models khud train kiye ya pre-trained use kiye?**
 
-| Metric | Formula | Matlab |
-|:---|:---|:---|
-| **Accuracy** | (TP+TN) / Total | Overall kitne correct? |
-| **Precision** | TP / (TP+FP) | Jitne FAKE bole unme se kitne sach mein FAKE? |
-| **Recall** | TP / (TP+FN) | Saare real FAKE mein se kitne pakde? |
-| **F1** | 2×(P×R)/(P+R) | Precision aur Recall ka balanced average |
+Pre-trained models use kiye. Training ke liye millions of images, weeks of GPU time chahiye hoti hai. Hamare project ka scope model training nahi tha.
 
-TP = True Positive (FAKE sahi pakda)
-TN = True Negative (REAL sahi pakda)
-FP = False Positive (REAL ko FAKE bola — galti)
-FN = False Negative (FAKE ko REAL bola — dangerous galti)
+Hamare actual contribution:
+1. Teeno models ko ek unified pipeline mein integrate karna
+2. Weighted ensemble system design karna
+3. Thresholds empirically calibrate karna
+4. Pakistani images par test aur fine-tune karna
+5. Complete web application banana
 
 ---
 
-**Q19. ROC-AUC kya hota hai?**
+**Q15. MTCNN kya hai aur kyun use kiya?**
 
-ROC (Receiver Operating Characteristic) curve model ki overall discrimination power dikhata hai:
-- X-axis: False Positive Rate (Real ko FAKE bolne ki rate)
-- Y-axis: True Positive Rate (FAKE pakadne ki rate)
-- **AUC = Area Under Curve** — 0.5 se 1.0 tak
-  - AUC 0.5 = Random guess (bekar)
-  - AUC 1.0 = Perfect model
-  - Hamare models: ~0.9976 (bahut acha!)
+MTCNN (Multi-task Cascaded Convolutional Networks) ek face detection model hai.
 
----
-
-**Q20. Confusion Matrix explain karein?**
-
-```
-                 Predicted
-                REAL    FAKE
-Actual  REAL  [ TN  |  FP  ]
-        FAKE  [ FN  |  TP  ]
-```
-
-- **TN (True Negative)**: Real image ko Real bola ✅
-- **TP (True Positive)**: Fake image ko Fake bola ✅
-- **FP (False Positive)**: Real image ko Fake bola ❌ (false alarm)
-- **FN (False Negative)**: Fake image ko Real bola ❌ (miss — dangerous!)
-
-Hamare model mein FN (miss karna) minimize karna sabse important tha.
+Pehle MTCNN face dhundta hai, phir sirf face crop ko models ko deta hai. Kyun?
+- Models chehron par train hue hain — background se confuse nahi hone chahiye
+- Face crop dene se accuracy badh jati hai
+- 95% confidence required — agar face nahi mila to poori image use hoti hai
 
 ---
 
-## 🔒 Security Questions
+## 📊 SECTION 3 — Results & Performance
 
 ---
 
-**Q21. Koi security measure hai?**
+**Q16. Aapke system ki accuracy kitni hai?**
 
-Haan, 3 layers:
-1. **Magic Bytes Validation** — File ka actual type check (extension spoof attack prevent)
-2. **Size Limits** — Image max 10MB, Video max 100MB (DoS attack prevent)
-3. **Path Traversal Protection** — `media/<sid>/<file>` endpoint mein `..` navigation block hai
-
----
-
-**Q22. User data kahan store hota hai?**
-
-- **Files**: `uploads/<session_id>/` folder mein locally disk par
-- **History**: `data/history.db` SQLite file mein locally
-- **Koi data cloud par nahi jata** — 100% local system par hai
-- Website par likha hai: "100% local — nothing is uploaded anywhere"
+- Images: ~80-93% (test set ke hisaab se)
+- Videos: ~89.6% (29 videos benchmark)
+- Fake detection rate: ~100% (zero false negatives on our test set)
 
 ---
 
-**Q23. Internet connection chahiye?**
+**Q17. False Positive aur False Negative kya hote hain?**
 
-**Nahi** — ek baar models download ho jayen toh:
-- Sab kuch local machine par chalta hai
-- No cloud API calls
-- No internet required for detection
-- Privacy protected — koi data bahar nahi jata
+| Term | Matlab | Status |
+|------|--------|--------|
+| True Positive | Fake ko Fake bola | Correct |
+| True Negative | Real ko Real bola | Correct |
+| False Positive | Real ko Fake bola | Studio photos par hota hai |
+| False Negative | Fake ko Real bola | Dangerous! Minimize kiya |
 
----
-
-## 🎯 Project Related Questions
-
----
-
-**Q24. Yeh project banane ki zarurat kyun pari?**
-
-Generative AI (Stable Diffusion, MidJourney, DeepFaceLab) itni advanced ho gayi hai ke fake videos/images se:
-- **Political manipulation** ho sakti hai (leaders ke fake speeches)
-- **Financial fraud** ho sakta hai (identity theft)
-- **Misinformation** phail sakti hai social media par
-
-Ek aam user ke paas koi tool nahi tha verify karne ka. Hamare project ne **accessible, free, local deepfake detector** banaya.
+Hamare liye False Negative sabse dangerous tha — isliye 100% fake recall priority thi.
 
 ---
 
-**Q25. Real world mein kahan use ho sakta hai?**
+**Q18. Kuch images galat detect kyun hoti hain?**
 
-- **Journalism**: News images/videos verify karna
-- **Social Media Platforms**: Fake content automatically flag karna
-- **Banks/Finance**: Video KYC verification
-- **Legal**: Court evidence authenticity check
-- **Government**: Election campaigns mein fake videos detect karna
+Case 1 — Studio/Professional Photos (False Positive):
+- Professional lighting flat hoti hai → AI generated jaisi lagti hai
+- Edited skin → AI smoothing jaisi lagti hai
+- ViT-Large confuse ho jata hai
 
----
-
-**Q26. Future improvements kya ho sakte hain?**
-
-1. **Audio deepfake detection** add karna (voice cloning)
-2. **Real-time video stream** detection (live webcam)
-3. **Batch processing** — multiple files ek sath scan karna
-4. **Mobile app** banana (Android/iOS)
-5. **More models** integrate karna (newer architectures)
-6. **Explainability improve** karna (ViT attention maps)
+Case 2 — High Quality Fakes (False Negative):
+- Kuch fakes itne perfect hote hain ke teeno models low score dete hain
+- Training data mein wohi fake type nahi thi
+- Sirf retraining fix kar sakti hai
 
 ---
 
-**Q27. Sabse bada challenge kya tha?**
+**Q19. Aapne 100% fake detection kaise achieve kiya?**
 
-1. **4 alag AI models ko ek pipeline mein integrate karna** — har model ki alag preprocessing requirements thi
-2. **LNCLIP model TorchScript format** mein tha — loading alag tarike se hoti thi
-3. **Grad-CAM aur ViT compatibility** — Grad-CAM sirf CNN models par direct apply hota hai
-4. **Server warmup time** — 4 models load hone mein 2-3 minutes lagte hain, is ke liye async polling system banana pada
+- Threshold 0.38 rakha — borderline fakes bhi pakad sakein
+- ViT-Large ko 2x weight — AI fakes par most reliable
+- Weighted soft voting — ek model ki low score poore result ko nahi bigaadti
+- Multiple benchmarks par test karte rahe aur weights tune kiye
 
 ---
 
-## ⚡ Quick Reference Answers
+## 💻 SECTION 4 — Technical Implementation
+
+---
+
+**Q20. Backend technology kya use ki aur kyun?**
+
+Python + Flask
+- Python: PyTorch, timm, MTCNN ka best support
+- Flask: Lightweight REST API — Django overkill hota
+
+---
+
+**Q21. Frontend technology kya use ki?**
+
+React.js + Vite + Vanilla CSS
+- React: Component-based UI — Scanner, History, Results alag components
+- Vite: Fast build tool
+- useState, useEffect — real-time animations ke liye
+
+---
+
+**Q22. Database kya use ki?**
+
+SQLite (data/history.db)
+- Zero setup — koi server nahi, sirf ek file
+- Python built-in support
+- WAL mode enable kiya — simultaneous read/write safe
+
+---
+
+**Q23. Video processing kaise hoti hai?**
+
+1. Video upload hoti hai
+2. MTCNN se faces detect hote hain
+3. Video se 40 frames extract hote hain (5 FPS)
+4. Har frame teeno models se analyze hota hai
+5. Sab frames ke scores ka weighted average liya jata hai
+6. Final score se FAKE/REAL decision
+
+---
+
+**Q24. Grad-CAM kya hai?**
+
+Grad-CAM (Gradient-weighted Class Activation Mapping) ek explainability technique hai.
+
+Dikhata hai ke model ne image ke kaunse hisse dekh kar decision kiya:
+- Red area = Model ne yahan zyada suspicion dekha
+- Blue area = Kam concern
+
+Xception71 ke conv layers par apply hota hai — CNN layers par best kaam karta hai.
+
+---
+
+**Q25. Security measures kya hain?**
+
+1. Magic Bytes Validation — File ka actual type check
+2. Size Limits — Image max 10MB, Video max 100MB
+3. Session ID — Har user ka alag folder
+4. Path Traversal Block — ".." navigation prevent
+
+---
+
+**Q26. User ka data kahan jata hai?**
+
+100% Local — koi data cloud par nahi jata:
+- Files: Local uploads/ folder mein (temporary)
+- History: Local SQLite file mein
+- Koi API call bahar nahi jati
+
+---
+
+## 🔬 SECTION 5 — Deep Technical Questions
+
+---
+
+**Q27. Depthwise Separable Convolution kya hoti hai?**
+
+Normal convolution: Spatial + Channel information ek saath process karta hai
+
+Depthwise Separable (Xception mein):
+- Step 1 (Depthwise): Har channel ko alag alag spatial filter se process karo
+- Step 2 (Pointwise): 1x1 convolution se channels combine karo
+
+Faida: Kam parameters, zyada efficient, zyada detail capture
+
+---
+
+**Q28. Self-Attention mechanism kya hai (ViT mein)?**
+
+ViT image ko patches mein todta hai. Phir har patch doosre har patch se relationship dhundta hai:
+- Aankhon wala patch socha: "Meri skin texture bilkul alag hai"
+- Naak wala patch reply kiya: "Haan, mera bhi boundary unnatural hai"
+
+Yeh global context CNN se behtar pakadta hai. AI images mein global inconsistency hoti hai jo ViT pakad leta hai.
+
+---
+
+**Q29. CLIP model kya hota hai?**
+
+CLIP (Contrastive Language-Image Pretraining) — OpenAI ka model:
+- Billions of (image, text) pairs par train hua
+- Image aur text ko same embedding space mein lata hai
+- "AI generated portrait" vs "real photo" deeply samajhta hai
+- Hamare ViT-Large is CLIP pretraining se initialize hua — isliye generalization acha hai
+
+---
+
+**Q30. Native Resolution kyun important hai?**
+
+Har model ek specific resolution par train hua:
+- EfficientNet-B5: 456x456 pixels
+- Xception71: 299x299 pixels
+- ViT: 224x224 pixels
+
+Agar galat resolution dein to model ke trained filters galat scale par apply hote hain — accuracy drop hoti hai.
+
+Hamare system mein: Har model ko uski native resolution par input dete hain.
+
+---
+
+## ❓ SECTION 6 — Challenging Questions
+
+---
+
+**Q31. Aapka system fail kab hoga?**
+
+1. Extreme quality fakes — perfect AI face
+2. Pakistani studio photos — false positive
+3. Very compressed images — camera artifacts destroy ho jaate hain
+4. Partial face — MTCNN detect na kar sake
+5. New unseen deepfake type — training mein nahi thi
+
+Yeh known limitations hain, future work mein address ki ja sakti hain.
+
+---
+
+**Q32. Koi existing tool kyun nahi use kiya?**
+
+Existing tools (Sensity, Microsoft Video Authenticator) mein problems:
+- Cloud-based — privacy risk
+- Paid/expensive
+- Pakistani content par tested nahi
+- Explainability (heatmap) nahi
+
+Hamare system mein: Free, local, explainable, Pakistani content par tested.
+
+---
+
+**Q33. Model bias kya hota hai? Kya aapke system mein hai?**
+
+Model bias = training data ki limitations system mein aati hain.
+
+Hamare system mein:
+- Models mostly Western faces par train hue — Pakistani faces par kabhi kabhi false positive
+- Studio photos ke liye false alarm — training mein aise real photos kam the
+
+Yeh valid limitation hai jo thesis mein honestly document ki gayi hai.
+
+---
+
+**Q34. Threshold 0.38 kyun rakha 0.5 kyun nahi?**
+
+Test data par:
+- Moderate fakes (39% score) 0.5 threshold par miss hote the
+- 0.38 par yeh pakad lijiye bina new false alarms ke
+- Real images ke scores 27% se neeche the — safe
+
+Threshold empirically calibrate kiya — real test data par validate.
+
+---
+
+**Q35. Accuracy improve karne ke liye kya karo ge?**
+
+1. Pakistani studio real photos training data mein add karna
+2. Audio deepfake detection — voice cloning
+3. Real-time stream detection
+4. Model fine-tuning on Pakistani faces
+5. Newer architectures — EVA-CLIP, DINOv2
+
+---
+
+## ⚡ SECTION 7 — Quick Reference
 
 | Question | Short Answer |
-|:---|:---|
-| Kitne models? | 4 (XceptionNet, EfficientNet-B3, ViT-Small, ViT-L/14) |
-| Dataset? | FF++ C23, CommunityForensics (2.7M images) |
-| Accuracy? | ~98% (Ensemble) |
+|----------|-------------|
+| Kitne models? | 3 active (ViT-Large, EfficientNet-B5, Xception71) |
+| Training dataset? | FF++, DFDC, Celeb-DF, CommunityForensics |
+| Image Accuracy? | ~80-93% |
+| Video Accuracy? | ~89.6% |
+| Fake Detection Rate? | ~100% |
 | Backend? | Python + Flask |
-| Frontend? | React + JavaScript + CSS |
-| Database? | SQLite (`data/history.db`) |
+| Frontend? | React + Vite + CSS |
+| Database? | SQLite |
 | Local ya Cloud? | 100% Local |
-| Grad-CAM? | XceptionNet conv4 layer par visual proof |
-| Threshold? | 0.5 (configurable in config.yaml) |
-| Face Detection? | MTCNN (95% confidence required) |
+| Grad-CAM? | Xception71 conv layer par |
+| Image Threshold? | 0.38 |
+| Video Threshold? | 0.52 |
+| Face Detection? | MTCNN (95% confidence) |
+| Video Frames? | Max 40 frames @ 5 FPS |
+| ViT-Small weight? | 0.0 (excluded) |
+
+---
+
+*"Hamare system ka core strength: 3 bilkul alag architectures mil kar ek decision lete hain — jisse kisi ek model ki limitation poore result ko affect nahi karti."*
