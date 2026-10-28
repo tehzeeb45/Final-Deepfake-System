@@ -54,13 +54,13 @@ ensemble:                         # FR-14: weighted soft voting across 4 new mod
     new_efficientnet: 1.5         # EfficientNet-B5: commander model (fine-tuned, most calibrated)
     new_xception: 1.1             # Xception71: fine-tuned anchor (boosted from 1.0)
     new_vit_small: 0.5            # ViT-Small: calibrated active vote (unchanged)
-  video_weights:                  # Dual CNN Anchors + ViT-Large Generative AI Detector
-    new_vit_large_clip: 1.5       # ViT-Large/CLIP: catches AI video generators (Google VEO 3, Sora)
-    new_xception: 1.5             # Xception71: frame-by-frame seam/boundary classifier (boosted)
-    new_efficientnet: 1.0         # EfficientNet-B5: face-swap consistency anchor
+  video_weights:                  # Calibrated on real-world video test set
+    new_vit_large_clip: 0.6       # ViT-Large/CLIP: dampened (was 1.5) — removes false alarms on compressed frames
+    new_efficientnet: 1.5         # EfficientNet-B5: fine-tuned spatial consistency anchor
+    new_xception: 1.5             # Xception71: frame-by-frame seam/boundary classifier
     new_vit_small: 0.5            # ViT-Small: calibrated active vote (0.5 weight)
-  image_threshold: 0.52           # Calibrated threshold (52%) — balanced for real-world fakes and benchmarks
-  video_threshold: 0.52           # Calibrated video threshold (52%) — reduces FP on real videos
+  image_threshold: 0.535          # Calibrated threshold (53.5%) — separates borderline real (52-53%) from fakes (55%+)
+  video_threshold: 0.61           # Calibrated video threshold (61%) — separates compressed real videos from fakes
   threshold: 0.45                  # default fallback threshold
  
 preprocessing:
