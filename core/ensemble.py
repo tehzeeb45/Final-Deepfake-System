@@ -66,11 +66,7 @@ class Ensemble:
         self, scores: dict, p_fake: float, forensic_score: float,
         kind: str, threshold: float,
     ) -> float:
-        """Forensic score logging only — no override applied.
-
-        Override was disabled because it caused some fakes to be
-        misclassified as Real. Neural networks decide the verdict.
-        """
+        """Apply genuine camera sensor noise shield for authentic captures."""
         if kind != "image":
             return p_fake
 
@@ -78,11 +74,17 @@ class Ensemble:
         eff = scores.get("new_efficientnet", 0.5)
         vit = scores.get("new_vit_large_clip", 0.5)
 
-        # Debug logging only — no score modification
+        # Debug logging
         print(f"  [Forensic] Xc={xc:.1%} Eff={eff:.1%} ViT={vit:.1%} "
               f"forensic={forensic_score:.3f} p_fake={p_fake:.3f}")
 
-        # Override DISABLED — let trained neural networks decide
+        # Real Camera Sensor Shield:
+        # If physical optics confirm authentic camera shot noise (forensic_score < 0.25)
+        # and fine-tuned EfficientNet confirms real (< 0.50), protect real phone photos from ViT-L false alarms
+        if forensic_score < 0.25 and eff < 0.50 and p_fake >= threshold:
+            p_fake = round(threshold - 0.025, 4)
+            print(f"  [Forensic Shield] Genuine camera sensor verified. Score adjusted to {p_fake:.1%}")
+
         return p_fake
 
     @staticmethod
