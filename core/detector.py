@@ -91,7 +91,7 @@ class Detector:
         k = max(1, int(np.ceil(len(frame_probs) * top_ratio)))
         top_k = np.sort(frame_probs)[-k:]
         # 70% weight on the top most manipulated frames, 30% on overall mean
-        score = 0.70 * float(top_k.mean()) + 0.30 * float(frame_probs.mean())
+        score = 0.35 * float(top_k.mean()) + 0.65 * float(frame_probs.mean())
         return float(np.clip(score, 0.0, 1.0))
 
     def _to_clip_tensor(self, faces: list[np.ndarray], size: int = 224) -> torch.Tensor:
